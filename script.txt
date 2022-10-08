@@ -1,0 +1,168 @@
+create table tb_usuario
+(
+    tb_usuario_cod character(4) not null,
+    tb_usuario_dni character(20) not null,
+    tb_usuario_apepat character varying(30) not null,
+    tb_usuario_apemat character varying(30) not null,
+    tb_usuario_nom character varying(30) not null,
+    tb_usuario_con text not null,
+    constraint pk_usuario primary key(tb_usuario_cod),
+    constraint chk_usuario_codpat check (tb_usuario_cod similar to '[0-9][0-9][0-9][0-9]'),
+    constraint chk_usuario_coddom check (tb_usuario_cod <> '0000')
+);
+
+insert into tb_usuario(tb_usuario_cod,tb_usuario_dni,tb_usuario_apepat,tb_usuario_apemat,tb_usuario_nom,tb_usuario_con)
+values('0001','00000000','TRABAJO','FINAL','TPOO GRUPO-01','1234');
+	
+create table tb_ciudad
+(
+	tb_ciudad_cod character(2) not null,
+	tb_ciudad_nom character varying(50) not null,
+	constraint pk_ciudad primary key(tb_ciudad_cod),
+	constraint unq_ciudad_nom unique(tb_ciudad_nom),
+	constraint chk_ciudad_codpat check(tb_ciudad_cod similar to '[0-9][0-9]'),
+	constraint chk_ciudad_coddom check(tb_ciudad_cod <> '00')
+);
+
+create table tb_terminal
+(
+	tb_terminal_cod character(2) not null,
+	tb_terminal_nom character varying(50) not null,
+	tb_ciudad_cod character(2) not null,
+	constraint pk_terminal primary key(tb_terminal_cod),
+	constraint fk_ciudad_terminal foreign key(tb_ciudad_cod) references tb_ciudad(tb_ciudad_cod),
+	constraint unq_terminal_nom unique(tb_terminal_nom),
+	constraint chk_terminal_codpat check(tb_terminal_cod similar to '[0-9][0-9]'),
+	constraint chk_terminal_coddom check(tb_terminal_cod <> '00')
+);
+
+create table tb_ptoventa
+(
+	tb_ptoventa_cod character(2) not null,
+	tb_ptoventa_nom character varying(50) not null,
+	tb_terminal_cod character(2) not null,
+	constraint pk_ptoventa primary key(tb_ptoventa_cod),
+	constraint fk_terminal_ptoventa foreign key(tb_terminal_cod) references tb_terminal(tb_terminal_cod),
+	constraint unq_ptoventa_nom unique(tb_ptoventa_nom),
+	constraint chk_ptoventa_codpat check(tb_ptoventa_cod similar to '[0-9][0-9]'),
+	constraint chk_ptoventa_coddom check(tb_ptoventa_cod <> '00')
+);
+
+create table tb_vendedor
+(
+	tb_vendedor_cod character(2) not null,
+	tb_vendedor_nom character varying(50) not null,
+	constraint pk_vendedor primary key(tb_vendedor_cod),
+	constraint unq_vendedor_nom unique(tb_vendedor_nom),
+	constraint chk_vendedor_codpat check(tb_vendedor_cod similar to '[0-9][0-9]'),
+	constraint chk_vendedor_coddom check(tb_vendedor_cod <> '00')
+);
+
+create table tb_bus
+(
+	tb_bus_cod character(2) not null,
+	tb_bus_pla character varying(10) not null,
+        tb_bus_tip character(1) not null, -- Puede ser: N(Economico), E(Ejecutivo), C(Bus Cama)
+        tb_bus_ast integer not null,
+	constraint pk_bus primary key(tb_bus_cod),
+	constraint unq_bus_pla unique(tb_bus_pla),
+	constraint chk_bus_codpat check(tb_bus_cod similar to '[0-9][0-9]'),
+	constraint chk_bus_coddom check(tb_bus_cod <> '00'),
+	constraint chk_bus_ast check(tb_bus_ast > 0),
+	constraint chk_bus_tip check(tb_bus_tip in ('N','E','C'))
+);
+
+create table tb_tripulante
+(
+	tb_tripulante_cod character(2) not null,
+	tb_tripulante_nom character varying(50) not null,
+	constraint pk_tripulante primary key(tb_tripulante_cod),
+	constraint unq_tripulante_nom unique(tb_tripulante_nom),
+	constraint chk_tripulante_codpat check(tb_tripulante_cod similar to '[0-9][0-9]'),
+	constraint chk_tripulante_coddom check(tb_tripulante_cod <> '00')
+);
+
+create table tb_ruta
+(
+	tb_ruta_cod character(2) not null,
+	tb_corigen_cod character(2) not null,
+	tb_cdestino_cod character(2) not null,
+	tb_ruta_nom character varying(50) not null,
+	tb_ruta_dur decimal(10,2) not null,
+	tb_ruta_dst decimal(10,2) not null,
+	constraint pk_ruta primary key(tb_ruta_cod),
+	constraint fk_corigen_ruta foreign key(tb_corigen_cod) references tb_ciudad(tb_ciudad_cod),
+	constraint fk_cdestino_ruta foreign key(tb_cdestino_cod) references tb_ciudad(tb_ciudad_cod),
+	constraint unq_ruta_nom unique(tb_ruta_nom),
+	constraint chk_ruta_codpat check(tb_ruta_cod similar to '[0-9][0-9]'),
+	constraint chk_ruta_coddom check(tb_ruta_cod <> '00'),
+	constraint chk_duracion_ruta check(tb_ruta_dur > 0.00),
+	constraint chk_distancia_ruta check(tb_ruta_dst > 0.00)
+);
+
+create table tb_viaje
+(
+	tb_viaje_cod character(4) not null,
+	tb_ruta_cod character(2) not null,
+	tb_viaje_fechor timestamp not null default now(),
+	tb_bus_cod character(2) not null,
+	tb_viaje_pil character(2) not null,
+	tb_viaje_cop character(2) not null,
+	tb_viaje_ter character(2) not null,
+	tb_viaje_preuni decimal(10,2) not null,
+	tb_viaje_asdsp integer not null,
+	constraint pk_viaje primary key(tb_viaje_cod),
+	constraint fk_ruta_viaje foreign key(tb_ruta_cod) references tb_ruta(tb_ruta_cod),
+	constraint fk_bus_viaje foreign key(tb_bus_cod) references tb_bus(tb_bus_cod),
+	constraint fk_pil_viaje foreign key(tb_viaje_pil) references tb_tripulante(tb_tripulante_cod),
+	constraint fk_cop_viaje foreign key(tb_viaje_cop) references tb_tripulante(tb_tripulante_cod),
+	constraint fk_ter_viaje foreign key(tb_viaje_ter) references tb_tripulante(tb_tripulante_cod),
+	constraint chk_viaje_codpat check(tb_viaje_cod similar to '[0-9][0-9][0-9][0-9]'),
+	constraint chk_viaje_coddom check(tb_viaje_cod <> '0000'),
+	constraint chk_viaje_preuni check(tb_viaje_preuni > 0.00)
+);
+
+create table tb_cliente
+(
+	tb_cliente_cod character(4) not null,
+	tb_cliente_nom character varying(50) not null,
+	tb_cliente_tlf character varying(20) not null,
+	constraint pk_cliente primary key(tb_cliente_cod),
+	constraint unq_cliente_nom unique(tb_cliente_nom),
+	constraint chk_cliente_codpat check(tb_cliente_cod similar to '[0-9][0-9][0-9][0-9]'),
+	constraint chk_cliente_coddom check(tb_cliente_cod <> '0000')
+);
+
+create table tb_boleto
+(
+	tb_boleto_id serial not null,
+	tb_boleto_fechor timestamp not null default now(),
+	tb_boleto_imptot decimal(15,2) not null,
+	tb_cliente_cod character(4) not null,
+	constraint pk_boleto primary key(tb_boleto_id),
+	constraint fk_cliente_boleto foreign key(tb_cliente_cod) references tb_cliente(tb_cliente_cod),
+	constraint chk_boleto_id check(tb_boleto_id > 0),
+	constraint chk_boleto_fechor check(tb_boleto_fechor <= now()),
+	constraint chk_boleto_imptot check(tb_boleto_imptot > 0.00)
+);
+
+create table tb_detalleboleto
+(
+	tb_detalleboleto_id serial not null,
+	tb_pasajero_cod character(4) not null,
+	tb_viaje_cod character(4) not null,
+	tb_nasiento integer not null,
+	tb_detalleboleto_can decimal(2,0) not null,
+	tb_detalleboleto_preuni decimal(15,2) not null,
+	tb_detalleboleto_subtot decimal(15,2) not null,
+	tb_boleto_id integer not null,
+	constraint pk_detalleboleto primary key(tb_detalleboleto_id),
+	constraint fk_boleto_detalleboleto foreign key(tb_boleto_id) references tb_boleto(tb_boleto_id),
+	constraint fk_viaje_detalleboleto foreign key(tb_viaje_cod) references tb_viaje(tb_viaje_cod),
+	constraint fk_pasajero_detalleboleto foreign key(tb_pasajero_cod) references tb_cliente(tb_cliente_cod),
+	constraint chh_detalleboleto_id check(tb_detalleboleto_id > 0),
+	constraint chh_detalleboleto_can check(tb_detalleboleto_can > 0),
+	constraint chh_detalleboleto_preuni check(tb_detalleboleto_preuni > 0.00),
+	constraint chh_detalleboleto_subtot check(tb_detalleboleto_subtot > 0.00),
+	constraint chh_detalleboleto_nasiento check(tb_nasiento > 0)
+);
